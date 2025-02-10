@@ -10,9 +10,6 @@ app.use(express.json({ limit: "500kb" }));
 
 app.use("/api/v1/auth", authRoutes);
 app.use("/api/v1/event", eventRoutes);
-app.use("/", (req, res) => {
-  console.log("hello");
-  res.json({ message: "Hello" });
-});
+
 app.listen(3000, () => console.log("Server ready on port 3000."));
 module.exports = app;

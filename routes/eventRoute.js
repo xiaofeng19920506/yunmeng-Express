@@ -6,7 +6,6 @@ const router = express.Router();
 
 router.use(authController.protectedByToken);
 router
-  .route("/")
   .post(eventController.createEvent)
   .get(eventController.getAllEvent);
 
