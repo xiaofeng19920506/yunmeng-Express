@@ -1,5 +1,5 @@
 const User = require("./userModel");
-
+const mongoose = require("mongoose");
 const eventSchema = new mongoose.Schema({
   eventTitle: {
     type: String,
@@ -9,15 +9,15 @@ const eventSchema = new mongoose.Schema({
     type: Array,
     default: [],
   },
-  eventOnwer: {
-    type: User,
-    required: true,
-  },
+  // eventOnwer: {
+  //   type: User,
+  //   required: true,
+  // },
   eventUsers: {
     type: Array,
     default: [],
   },
 });
 
-const YunMen_events = mongoose.model("YunMen_events", eventSchema);
-module.exports = YunMen_events;
+const events = mongoose.model("YunMen_events", eventSchema);
+module.exports = events;

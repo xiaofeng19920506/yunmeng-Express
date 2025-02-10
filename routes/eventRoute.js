@@ -1,15 +1,15 @@
 const express = require("express");
 const authController = require("../controllers/authController.js");
-const bookingController = require("../controllers/bookingController.js");
+const eventController = require("../controllers/eventController.js");
 
 const router = express.Router();
 
 router.use(authController.protectedByToken);
 router
   .route("/")
-  .post(bookingController.createBooking)
-  .get(bookingController.getAllBooking);
+  .post(eventController.createBooking)
+  .get(eventController.getAllBooking);
 
-router.route("/:id").put(bookingController.updateBooking);
+router.route("/:id").put(eventController.updateBooking);
 
 module.exports = router;
