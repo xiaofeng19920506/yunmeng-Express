@@ -7,9 +7,9 @@ const router = express.Router();
 router.use(authController.protectedByToken);
 router
   .route("/")
-  .post(eventController.createBooking)
-  .get(eventController.getAllBooking);
+  .post(eventController.createEvent)
+  .get(eventController.getAllEvent);
 
-router.route("/:id").put(eventController.updateBooking);
+router.route("/:id").put(eventController.updateEvent);
 
 module.exports = router;
