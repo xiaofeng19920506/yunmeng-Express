@@ -1,5 +1,5 @@
-const mongoose = require("mongoose");
 const User = require("./userModel");
+
 const eventSchema = new mongoose.Schema({
   eventTitle: {
     type: String,
