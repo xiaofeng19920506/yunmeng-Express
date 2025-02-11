@@ -5,32 +5,34 @@ const users = require("../models/userModel.js");
 
 const authController = {
   login: async (req, res) => {
-    const { username, password } = req.body;
+    const { email, password } = req.body;
 
     try {
-      const user = await users.findOne({ username: username.toLowerCase() });
-
-      if (!user) {
-        return res.status(401).json({ message: "Invalid credentials" });
-      }
-      if (!username || !password) {
+      // Check if email or password is missing
+      if (!email || !password) {
         return res
           .status(400)
-          .json({ message: "Username and password are required." });
+          .json({ message: "Email and password are required." });
       }
 
-      if (username !== user.user) {
-        return res
-          .status(401)
-          .json({ message: "Invalid username or password." });
+      console.log(email);
+
+      const user = await users.findOne({ email });
+
+      console.log(user);
+
+      if (!user) {
+        return res.status(401).json({ message: "Invalid email or password." });
       }
 
+      // Check if the password matches
       const passwordMatch = await bcrypt.compare(password, user.password);
-
       if (!passwordMatch) {
-        return res.status(401).json({ message: "Invalid credentials" });
+        console.log(1111);
+        return res.status(401).json({ message: "Invalid email or password." });
       }
 
+      // Generate a JWT token
       const token = jwt.sign(
         { userId: user._id, username: user.username },
         process.env.JWT_SECRET,
@@ -46,25 +48,58 @@ const authController = {
       return res.status(500).json({ message: "Internal server error" });
     }
   },
+  signup: async (req, res, next) => {
+    const { email, password } = req.body;
+    try {
+      if (!email || !password) {
+        return res
+          .status(400)
+          .json({ message: "email and password are required" });
+      }
+
+      const existUser = await users.findOne({ email });
+      if (existUser) {
+        return res.status(400).json({ message: "Email is already taken" });
+      }
+
+      const hashedPassword = await bcrypt.hash(password, 10);
+
+      const newUser = new users({
+        email,
+        password: hashedPassword,
+        isAdmin: false,
+        holdEvents: [],
+      });
+
+      await newUser.save();
+
+      const token = jwt.sign(
+        { userId: newUser._id, email: newUser.email },
+        process.env.JWT_SECRET
+      );
+      return res.status(201).json({ message: "user registered successfully" });
+    } catch (error) {
+      console.error(error);
+      return res.status(500).json({ message: "Internal server error" });
+    }
+  },
   verifyToken: async (req, res, next) => {
-    const authHeader = req.header["authorization"];
+    const authHeader = req.headers["authorization"];
     const token = authHeader && authHeader.split(" ")[1];
 
     if (!token) {
-      return res.status(401).json({ message: "token is invalid or missing" });
+      return res.status(401).json({ message: "Token is invalid or missing" });
     }
 
     try {
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
       req.user = decoded;
-
-      return res
-        .status(200)
-        .json({ status: "success", message: "valid token" });
+      next(); // Proceed to the next middleware or route handler
     } catch (error) {
-      return res.status(403).json({ message: "invalid or expired token" });
+      return res.status(403).json({ message: "Invalid or expired token" });
     }
   },
+
   protectedByToken: async (req, res, next) => {
     const authHeader = req.headers["authorization"];
     const token = authHeader && authHeader.split(" ")[1];
@@ -76,7 +111,6 @@ const authController = {
     try {
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
       req.user = decoded;
-
       next();
     } catch (err) {
       return res.status(403).json({ message: "Invalid or expired token" });
