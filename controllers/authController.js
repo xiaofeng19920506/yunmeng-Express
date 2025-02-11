@@ -8,7 +8,6 @@ const authController = {
     const { email, password } = req.body;
 
     try {
-      // Check if email or password is missing
       if (!email || !password) {
         return res
           .status(400)
@@ -25,14 +24,12 @@ const authController = {
         return res.status(401).json({ message: "Invalid email or password." });
       }
 
-      // Check if the password matches
       const passwordMatch = await bcrypt.compare(password, user.password);
       if (!passwordMatch) {
         console.log(1111);
         return res.status(401).json({ message: "Invalid email or password." });
       }
 
-      // Generate a JWT token
       const token = jwt.sign(
         { userId: user._id, username: user.username },
         process.env.JWT_SECRET,
@@ -94,7 +91,7 @@ const authController = {
     try {
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
       req.user = decoded;
-      next(); // Proceed to the next middleware or route handler
+      next();
     } catch (error) {
       return res.status(403).json({ message: "Invalid or expired token" });
     }

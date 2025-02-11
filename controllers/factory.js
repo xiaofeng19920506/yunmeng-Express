@@ -15,12 +15,11 @@ exports.getAll = (Model) => {
     try {
       decoded = jwt.verify(token, process.env.JWT_SECRET);
     } catch (error) {
-      return next(new appError("Invalid token", 401)); // Return error if token is invalid
+      return next(new appError("Invalid token", 401)); 
     }
 
     const username = decoded.username;
 
-    // Find the user based on the decoded username
     const user = await Model.findOne({ username: username });
 
     if (!user) {
