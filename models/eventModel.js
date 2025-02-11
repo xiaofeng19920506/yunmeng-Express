@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+
 const eventSchema = new mongoose.Schema({
   eventTitle: {
     type: String,
@@ -18,5 +19,5 @@ const eventSchema = new mongoose.Schema({
   },
 });
 
-const events = mongoose.model("YunMen_events", eventSchema);
+const events = mongoose.model("yunmen_events", eventSchema);
 module.exports = events;

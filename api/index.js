@@ -3,8 +3,11 @@ const cors = require("cors");
 const connectDB = require("./connection");
 const authRoutes = require("../routes/authRoute.js");
 const eventRoutes = require("../routes/eventRoute.js");
+const cookieParser = require("cookie-parser");
 const app = express();
 connectDB();
+
+app.use(cookieParser());
 app.use(cors());
 app.use(express.json({ limit: "500kb" }));
 

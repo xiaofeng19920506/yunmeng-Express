@@ -15,11 +15,10 @@ const userSchema = new mongoose.Schema({
     default: false,
   },
   holdEvents: {
-    type: Array,
+    type: [{ type: mongoose.Schema.Types.ObjectId, ref: "Event" }],
     default: [],
   },
 });
-
 
 const users = mongoose.model("candy_users", userSchema);
 module.exports = users;
