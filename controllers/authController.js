@@ -8,7 +8,7 @@ const authController = {
     const { username, password } = req.body;
 
     try {
-      const user = await users.findOne({ user: username.toLowerCase() });
+      const user = await users.findOne({ username: username.toLowerCase() });
 
       if (!user) {
         return res.status(401).json({ message: "Invalid credentials" });
