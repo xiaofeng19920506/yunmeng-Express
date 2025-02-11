@@ -5,9 +5,7 @@ const eventController = require("../controllers/eventController.js");
 const router = express.Router();
 
 router.use(authController.protectedByToken);
-router
-  .post(eventController.createEvent)
-  .get(eventController.getAllEvent);
+router.post(eventController.createEvent).get(eventController.getAllEvent);
 
 router.route("/:id").put(eventController.updateEvent);
 
