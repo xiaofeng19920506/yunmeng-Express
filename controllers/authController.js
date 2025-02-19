@@ -14,8 +14,6 @@ const authController = {
           .json({ message: "Email and password are required." });
       }
 
-      console.log(email);
-
       const user = await users.findOne({ email });
 
       console.log(user);
@@ -26,7 +24,6 @@ const authController = {
 
       const passwordMatch = await bcrypt.compare(password, user.password);
       if (!passwordMatch) {
-        console.log(1111);
         return res.status(401).json({ message: "Invalid email or password." });
       }
 
@@ -46,7 +43,7 @@ const authController = {
     }
   },
   signup: async (req, res, next) => {
-    const { email, password } = req.body;
+    const { email, password, name } = req.body;
     try {
       if (!email || !password) {
         return res
@@ -63,6 +60,7 @@ const authController = {
 
       const newUser = new users({
         email,
+        name,
         password: hashedPassword,
         isAdmin: false,
         holdEvents: [],
