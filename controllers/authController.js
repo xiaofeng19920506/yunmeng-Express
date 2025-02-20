@@ -33,9 +33,16 @@ const authController = {
         { expiresIn: "1d" }
       );
 
+      const returnUser = {
+        id: user._id,
+        name: user.name,
+        event: user.holdEvents,
+        email: user.email,
+      };
+
       return res.status(200).json({
         message: "Login successful",
-        user,
+        returnUser,
         token,
       });
     } catch (error) {
