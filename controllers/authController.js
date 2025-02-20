@@ -75,11 +75,6 @@ const authController = {
       });
 
       await newUser.save();
-
-      const token = jwt.sign(
-        { userId: newUser._id, email: newUser.email },
-        process.env.JWT_SECRET
-      );
       return res.status(201).json({ message: "user registered successfully" });
     } catch (error) {
       console.error(error);
@@ -110,7 +105,6 @@ const authController = {
     if (!token) {
       return res.status(401).json({ message: "Token missing or invalid" });
     }
-
     try {
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
       req.user = decoded;

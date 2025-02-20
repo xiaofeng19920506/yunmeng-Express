@@ -1,6 +1,6 @@
-const Events = require("../models/eventModel.js");
+const User = require("../models/userModel.js");
 const factory = require("./factory.js");
 
-exports.createEvent = factory.createOne(Events);
-exports.getAllEvent = factory.getAll(Events);
-exports.updateEvent = factory.updateOne(Events);
+exports.createEvent = factory.createOne(User);
+exports.getAllEvent = factory.getAll(User);
+exports.updateEvent = factory.updateOne(User);

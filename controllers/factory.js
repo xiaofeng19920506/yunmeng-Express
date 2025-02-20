@@ -4,7 +4,9 @@ const jwt = require("jsonwebtoken");
 
 exports.getAll = (Model) => {
   return catchAsync(async (req, res, next) => {
-    const token = req.cookies.token;
+    const authHeader = req.headers["authorization"];
+    const token = authHeader && authHeader.split(" ")[1];
+
     if (!token) {
       return res.status(400).json({
         status: "fail",
@@ -15,9 +17,9 @@ exports.getAll = (Model) => {
     try {
       decoded = jwt.verify(token, process.env.JWT_SECRET);
     } catch (error) {
-      return next(new appError("Invalid token", 401)); 
+      return next(new appError("Invalid token", 401));
     }
-
+    console.log({decoded});
     const username = decoded.username;
 
     const user = await Model.findOne({ username: username });
