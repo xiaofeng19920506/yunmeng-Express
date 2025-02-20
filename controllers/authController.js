@@ -42,7 +42,7 @@ const authController = {
 
       return res.status(200).json({
         message: "Login successful",
-        returnUser,
+        user: returnUser,
         token,
       });
     } catch (error) {
