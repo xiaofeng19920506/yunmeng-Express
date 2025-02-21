@@ -19,11 +19,10 @@ exports.getAll = (Model) => {
     } catch (error) {
       return next(new appError("Invalid token", 401));
     }
-    console.log({decoded});
-    const username = decoded.username;
-
-    const user = await Model.findOne({ username: username });
-
+    console.log({ decoded });
+    const id = decoded.userId;
+    const user = await Model.findOne({ _id: id });
+    console.log(user);
     if (!user) {
       return next(new appError("No user found with that username", 404));
     }
