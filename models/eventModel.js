@@ -5,17 +5,9 @@ const eventSchema = new mongoose.Schema({
     type: String,
     required: [true, "event title cannot be empty!"],
   },
-  eventDate: {
-    type: Array,
-    default: [],
-  },
-  // eventOnwer: {
-  //   type: User,
-  //   required: true,
-  // },
-  eventUsers: {
-    type: Array,
-    default: [],
+  eventContent: {
+    type: String,
+    required: [true, "event title cannot be empty!"],
   },
 });
 
