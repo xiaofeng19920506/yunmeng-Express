@@ -35,16 +35,18 @@ exports.getAll = (userModal, eventModal) => {
       return next(new appError("No user found with that username", 404));
     }
 
-    const holdEvents = user.holdEvents.map(async (eventId) => {
-      try {
-        const event = await eventModal.findOne({ _id: eventId });
-        return event;
-      } catch (error) {
-        console.error(error);
-        return next(new appError("no event found", 404));
-      }
-    });
-
+    const holdEvents = await Promise.all(
+      user.holdEvents.map(async (eventId) => {
+        try {
+          const event = await eventModal.findOne({ _id: eventId });
+          return event;
+        } catch (error) {
+          console.error(error);
+          throw new appError("No event found", 404);
+        }
+      })
+    );
+    console.log(holdEvents);
     res.status(200).json({
       status: "success",
       data: holdEvents,
