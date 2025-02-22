@@ -47,8 +47,7 @@ exports.getAll = (userModal, eventModal) => {
 
     res.status(200).json({
       status: "success",
-      result: user.holdEvents.length,
-      data: user.holdEvents,
+      data: holdEvents,
     });
   });
 };
