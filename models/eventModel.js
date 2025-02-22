@@ -6,7 +6,7 @@ const eventSchema = new mongoose.Schema({
     required: [true, "event title cannot be empty!"],
   },
   eventContent: {
-    type: String,
+    type: Array,
     required: [true, "event title cannot be empty!"],
   },
 });

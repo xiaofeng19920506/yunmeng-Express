@@ -3,7 +3,7 @@ const appError = require("../utils/appError");
 const jwt = require("jsonwebtoken");
 
 const extractToken = (request) => {
-  const authHeader = req.headers["authorization"];
+  const authHeader = request.headers["authorization"];
   const token = authHeader && authHeader.split(" ")[1];
 
   return token;
@@ -18,7 +18,7 @@ const extractUserIdFromToken = (token, next) => {
   }
 };
 
-exports.getAll = (Model) => {
+exports.getAll = (userModal, eventModal) => {
   return catchAsync(async (req, res, next) => {
     const token = extractToken(req);
     if (!token) {
@@ -29,11 +29,21 @@ exports.getAll = (Model) => {
     }
 
     const id = extractUserIdFromToken(token, next);
-    const user = await Model.findOne({ _id: id });
+    const user = await userModal.findOne({ _id: id });
 
     if (!user) {
       return next(new appError("No user found with that username", 404));
     }
+
+    const holdEvents = user.holdEvents.map(async (eventId) => {
+      try {
+        const event = await eventModal.findOne({ _id: eventId });
+        return event;
+      } catch (error) {
+        console.error(error);
+        return next(new appError("no event found", 404));
+      }
+    });
 
     res.status(200).json({
       status: "success",
@@ -90,10 +100,16 @@ exports.createOne = (userModal, eventModal) =>
     }
 
     const event = await eventModal.create(req.body);
+    console.log(event);
 
-    
+    if (!event) {
+      return next(new appError("No event is created", 404));
+    }
+
+    user.holdEvents.push(event);
+    await user.save();
     res.status(201).json({
       status: "success",
-      data: event,
+      data: user,
     });
   });
