@@ -146,8 +146,16 @@ exports.createOne = (userModal, eventModal) =>
 
     user.holdEvents.push(event);
     await user.save();
+
+    const result = {
+      _id: user._id,
+      email: user.email,
+      name: user.name,
+      isAdmin: user.isAdmin,
+      holdEvents: user.holdEvents,
+    };
     res.status(201).json({
       status: "success",
-      data: user,
+      data: result,
     });
   });
