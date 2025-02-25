@@ -18,6 +18,44 @@ const extractUserIdFromToken = (token, next) => {
   }
 };
 
+exports.getOne = (userModal, eventModal) => {
+  return catchAsync(async (req, res, next) => {
+    const token = extractToken(req);
+    if (!token) {
+      return res.status(400).json({
+        status: "fail",
+        message: "Authentication token is required",
+      });
+    }
+
+    const id = extractUserIdFromToken(token, next);
+    const user = await userModal.findOne({ _id: id });
+
+    if (!user) {
+      return next(new appError("No user found with that username", 404));
+    }
+
+    const userEvent = user.holdEvents.find(
+      (event) => event._id.toString() === req.params.eventId
+    );
+    if (!userEvent) {
+      return next(new appError("User doesn't have this event holded", 404));
+    }
+
+    const event = await eventModal.findOne(userEvent._id);
+    if (!event) {
+      return next(new appError("Event not found", 404));
+    }
+
+    res.status(200).json({
+      status: "success",
+      data: {
+        event,
+      },
+    });
+  });
+};
+
 exports.getAll = (userModal, eventModal) => {
   return catchAsync(async (req, res, next) => {
     const token = extractToken(req);
@@ -46,7 +84,6 @@ exports.getAll = (userModal, eventModal) => {
         }
       })
     );
-    console.log(holdEvents);
     res.status(200).json({
       status: "success",
       data: holdEvents,
