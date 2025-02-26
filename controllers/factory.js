@@ -38,12 +38,8 @@ exports.getOne = (userModal, eventModal) => {
       return next(new appError("No user found with that ID", 404));
     }
 
-    if (!user.holdEvents || !Array.isArray(user.holdEvents)) {
-      return next(new appError("User has no held events", 404));
-    }
-
     const userEvent = user.holdEvents.find(
-      (event) => event._id.toString() === req.params.eventId
+      (event) => event._id.toString() === req.params.id
     );
 
     if (!userEvent) {
