@@ -1,19 +1,10 @@
 const catchAsync = require("../utils/catchAsync");
 const appError = require("../utils/appError");
 const { isOwner } = require("../utils/user");
+
 exports.getOne = (Modal) => {
   return catchAsync(async (req, res, next) => {
-    const user = await isOwner(req, next);
-
-    const userEvent = user.holdEvents.find(
-      (event) => event._id.toString() === req.params.id
-    );
-
-    if (!userEvent) {
-      return next(new appError("User doesn't hold this event", 404));
-    }
-
-    const event = await Modal.findOne({ _id: userEvent._id });
+    const event = await Modal.findOne({ _id: req.params.id });
     if (!event) {
       return next(new appError("Event not found", 404));
     }
