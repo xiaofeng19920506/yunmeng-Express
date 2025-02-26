@@ -29,10 +29,17 @@ exports.getOne = (userModal, eventModal) => {
     }
 
     const id = extractUserIdFromToken(token, next);
-    const user = await userModal.findOne({ _id: id });
+    if (!id) {
+      return next(new appError("Invalid or expired token", 401));
+    }
 
+    const user = await userModal.findOne({ _id: id });
     if (!user) {
-      return next(new appError("No user found with that username", 404));
+      return next(new appError("No user found with that ID", 404));
+    }
+
+    if (!user.holdEvents || !Array.isArray(user.holdEvents)) {
+      return next(new appError("User has no held events", 404));
     }
 
     const userEvent = user.holdEvents.find(
@@ -40,19 +47,17 @@ exports.getOne = (userModal, eventModal) => {
     );
 
     if (!userEvent) {
-      return next(new appError("User doesn't have this event holded", 404));
+      return next(new appError("User doesn't hold this event", 404));
     }
 
-    const event = await eventModal.findOne(userEvent._id);
+    const event = await eventModal.findOne({ _id: userEvent._id });
     if (!event) {
       return next(new appError("Event not found", 404));
     }
 
     res.status(200).json({
       status: "success",
-      data: {
-        event,
-      },
+      data: { event },
     });
   });
 };
