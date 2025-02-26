@@ -6,3 +6,4 @@ exports.createEvent = factory.createOne(User, Event);
 exports.getAllEvent = factory.getAll(User, Event);
 exports.updateEvent = factory.updateOne(User, Event);
 exports.getOne = factory.getOne(User, Event);
+exports.deleteOne = factory.deleteOne(User, Event);

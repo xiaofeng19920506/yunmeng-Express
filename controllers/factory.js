@@ -93,9 +93,37 @@ exports.getAll = (userModal, eventModal) => {
   });
 };
 
-exports.deleteOne = (Model) => {
+exports.deleteOne = (userModal, eventModal) => {
   return catchAsync(async (req, res, next) => {
-    const deletedEvent = await Model.findByIdAndDelete(req.params.id);
+    const token = extractToken(req);
+    if (!token) {
+      return res.status(400).json({
+        status: "fail",
+        message: "Authentication token is required",
+      });
+    }
+
+    const id = extractUserIdFromToken(token, next);
+
+    if (!id) {
+      return next(new appError("Invalid or expired token", 401));
+    }
+
+    const user = await userModal.findOne({ _id: id });
+
+    if (!user) {
+      return next(new appError("No user found with that username", 404));
+    }
+
+    const userEvent = user.holdEvents.find(
+      (event) => event._id.toString() === req.params.id
+    );
+
+    if (!userEvent) {
+      return next(new appError("User doesn't hold this event", 404));
+    }
+
+    const deletedEvent = await eventModal.findByIdAndDelete(req.params.id);
 
     if (!deletedEvent) {
       return next(new appError("No event found with that id", 404));
@@ -107,18 +135,43 @@ exports.deleteOne = (Model) => {
 
 exports.updateOne = (userModal, eventModal) =>
   catchAsync(async (req, res, next) => {
-    // const event = await Model.findByIdAndUpdate(req.params.id, req.body, {
-    //   new: true,
-    //   runValidators: true,
-    // });
+    const token = extractToken(req);
+    if (!token) {
+      return res.status(400).json({
+        status: "fail",
+        message: "Authentication token is required",
+      });
+    }
 
-    // if (!event) {
-    //   return next(new appError("No document found with that ID", 404));
-    // }
+    const id = extractUserIdFromToken(token, next);
+    if (!id) {
+      return next(new appError("Invalid or expired token", 401));
+    }
+
+    const user = await userModal.findOne({ _id: id });
+    if (!user) {
+      return next(new appError("No user found with that ID", 404));
+    }
+
+    const userEventId = user.holdEvents.find(
+      (eventId) => eventId.toString() === req.params.id
+    );
+    if (!userEventId) {
+      return next(new appError("User doesn't hold this event", 404));
+    }
+    const updatedEvent = await eventModal.findByIdAndUpdate(
+      req.params.id,
+      req.body,
+      { new: true, runValidators: true }
+    );
+
+    if (!updatedEvent) {
+      return next(new appError("Event not found", 404));
+    }
 
     res.status(200).json({
       status: "success",
-      data: event,
+      data: updatedEvent,
     });
   });
 
