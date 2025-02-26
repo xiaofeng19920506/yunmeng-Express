@@ -38,6 +38,7 @@ exports.getOne = (userModal, eventModal) => {
     const userEvent = user.holdEvents.find(
       (event) => event._id.toString() === req.params.eventId
     );
+
     if (!userEvent) {
       return next(new appError("User doesn't have this event holded", 404));
     }
