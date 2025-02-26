@@ -1,9 +1,8 @@
-const User = require("../models/userModel.js");
 const Event = require("../models/eventModel.js");
 const factory = require("./factory.js");
 
-exports.createEvent = factory.createOne(User, Event);
-exports.getAllEvent = factory.getAll(User, Event);
-exports.updateEvent = factory.updateOne(User, Event);
-exports.getOne = factory.getOne(User, Event);
-exports.deleteOne = factory.deleteOne(User, Event);
+exports.createEvent = factory.createOne(Event);
+exports.getAllEvent = factory.getAll(Event);
+exports.updateEvent = factory.updateOne(Event);
+exports.getOne = factory.getOne(Event);
+exports.deleteOne = factory.deleteOne(Event);

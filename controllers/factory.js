@@ -1,42 +1,9 @@
 const catchAsync = require("../utils/catchAsync");
 const appError = require("../utils/appError");
-const jwt = require("jsonwebtoken");
-
-const extractToken = (request) => {
-  const authHeader = request.headers["authorization"];
-  const token = authHeader && authHeader.split(" ")[1];
-
-  return token;
-};
-
-const extractUserIdFromToken = (token, next) => {
-  try {
-    const user = jwt.verify(token, process.env.JWT_SECRET);
-    return user.userId;
-  } catch (error) {
-    return next(new appError("Invalid token", 401));
-  }
-};
-
-exports.getOne = (userModal, eventModal) => {
+const { isOwner } = require("../utils/user");
+exports.getOne = (Modal) => {
   return catchAsync(async (req, res, next) => {
-    const token = extractToken(req);
-    if (!token) {
-      return res.status(400).json({
-        status: "fail",
-        message: "Authentication token is required",
-      });
-    }
-
-    const id = extractUserIdFromToken(token, next);
-    if (!id) {
-      return next(new appError("Invalid or expired token", 401));
-    }
-
-    const user = await userModal.findOne({ _id: id });
-    if (!user) {
-      return next(new appError("No user found with that ID", 404));
-    }
+    const user = await isOwner(req, next);
 
     const userEvent = user.holdEvents.find(
       (event) => event._id.toString() === req.params.id
@@ -46,7 +13,7 @@ exports.getOne = (userModal, eventModal) => {
       return next(new appError("User doesn't hold this event", 404));
     }
 
-    const event = await eventModal.findOne({ _id: userEvent._id });
+    const event = await Modal.findOne({ _id: userEvent._id });
     if (!event) {
       return next(new appError("Event not found", 404));
     }
@@ -58,27 +25,14 @@ exports.getOne = (userModal, eventModal) => {
   });
 };
 
-exports.getAll = (userModal, eventModal) => {
+exports.getAll = (Modal) => {
   return catchAsync(async (req, res, next) => {
-    const token = extractToken(req);
-    if (!token) {
-      return res.status(400).json({
-        status: "fail",
-        message: "Authentication token is required",
-      });
-    }
-
-    const id = extractUserIdFromToken(token, next);
-    const user = await userModal.findOne({ _id: id });
-
-    if (!user) {
-      return next(new appError("No user found with that username", 404));
-    }
+    const user = await isOwner(req, next);
 
     const holdEvents = await Promise.all(
       user.holdEvents.map(async (eventId) => {
         try {
-          const event = await eventModal.findOne({ _id: eventId });
+          const event = await Modal.findOne({ _id: eventId });
           return event;
         } catch (error) {
           console.error(error);
@@ -93,27 +47,9 @@ exports.getAll = (userModal, eventModal) => {
   });
 };
 
-exports.deleteOne = (userModal, eventModal) => {
+exports.deleteOne = (Modal) => {
   return catchAsync(async (req, res, next) => {
-    const token = extractToken(req);
-    if (!token) {
-      return res.status(400).json({
-        status: "fail",
-        message: "Authentication token is required",
-      });
-    }
-
-    const id = extractUserIdFromToken(token, next);
-
-    if (!id) {
-      return next(new appError("Invalid or expired token", 401));
-    }
-
-    const user = await userModal.findOne({ _id: id });
-
-    if (!user) {
-      return next(new appError("No user found with that username", 404));
-    }
+    const user = await isOwner(req, next);
 
     const userEvent = user.holdEvents.find(
       (event) => event._id.toString() === req.params.id
@@ -123,7 +59,7 @@ exports.deleteOne = (userModal, eventModal) => {
       return next(new appError("User doesn't hold this event", 404));
     }
 
-    const deletedEvent = await eventModal.findByIdAndDelete(req.params.id);
+    const deletedEvent = await Modal.findByIdAndDelete(req.params.id);
 
     if (!deletedEvent) {
       return next(new appError("No event found with that id", 404));
@@ -133,25 +69,9 @@ exports.deleteOne = (userModal, eventModal) => {
   });
 };
 
-exports.updateOne = (userModal, eventModal) =>
+exports.updateOne = (Modal) =>
   catchAsync(async (req, res, next) => {
-    const token = extractToken(req);
-    if (!token) {
-      return res.status(400).json({
-        status: "fail",
-        message: "Authentication token is required",
-      });
-    }
-
-    const id = extractUserIdFromToken(token, next);
-    if (!id) {
-      return next(new appError("Invalid or expired token", 401));
-    }
-
-    const user = await userModal.findOne({ _id: id });
-    if (!user) {
-      return next(new appError("No user found with that ID", 404));
-    }
+    const user = await isOwner(req, next);
 
     const userEventId = user.holdEvents.find(
       (eventId) => eventId.toString() === req.params.id
@@ -159,7 +79,7 @@ exports.updateOne = (userModal, eventModal) =>
     if (!userEventId) {
       return next(new appError("User doesn't hold this event", 404));
     }
-    const updatedEvent = await eventModal.findByIdAndUpdate(
+    const updatedEvent = await Modal.findByIdAndUpdate(
       req.params.id,
       req.body,
       { new: true, runValidators: true }
@@ -175,24 +95,10 @@ exports.updateOne = (userModal, eventModal) =>
     });
   });
 
-exports.createOne = (userModal, eventModal) =>
+exports.createOne = (Modal) =>
   catchAsync(async (req, res, next) => {
-    const token = extractToken(req);
-    if (!token) {
-      return res.status(400).json({
-        status: "fail",
-        message: "Authentication token is required",
-      });
-    }
-
-    const id = extractUserIdFromToken(token, next);
-    const user = await userModal.findOne({ _id: id });
-
-    if (!user) {
-      return next(new appError("No user found with that username", 404));
-    }
-
-    const event = await eventModal.create(req.body);
+    const user = await isOwner(req, next);
+    const event = await Modal.create(req.body);
     console.log(event);
 
     if (!event) {
