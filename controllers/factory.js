@@ -19,21 +19,10 @@ exports.getOne = (Modal) => {
 exports.getAll = (Modal) => {
   return catchAsync(async (req, res, next) => {
     const user = await isOwner(req, next);
-
-    const holdEvents = await Promise.all(
-      user.holdEvents.map(async (eventId) => {
-        try {
-          const event = await Modal.findOne({ _id: eventId });
-          return event;
-        } catch (error) {
-          console.error(error);
-          throw new appError("No event found", 404);
-        }
-      })
-    );
+    const events = await Modal.find({ _id: { $in: user.holdEvents } });
     res.status(200).json({
       status: "success",
-      data: holdEvents,
+      data: events,
     });
   });
 };
