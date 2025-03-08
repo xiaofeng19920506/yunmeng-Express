@@ -104,12 +104,24 @@ exports.createOne = (Modal) =>
 exports.joinOne = (Modal) =>
   catchAsync(async (req, res, next) => {
     const user = await isOwner(req, next);
+    const eventId = req.body.eventId;
+    if (!eventId) {
+      return next(new appError("Event id must be provided", 400));
+    }
 
-    const event = await Modal.findOne({ _id: req.body });
-    event.joinedEvents.push(user._id);
-    event.save();
+    const event = await Modal.findOne({ _id: eventId });
+    if (!event) {
+      return next(new appError("Event not found", 404));
+    }
+
+    if (!event.joinedEvents.includes(user._id)) {
+      event.joinedEvents.push(user._id);
+      await event.save();
+    }
+
     res.status(201).json({
       status: "success",
-      data: result,
+      data: event,
     });
   });
+
