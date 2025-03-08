@@ -21,7 +21,6 @@ exports.getAll = (Modal) => {
     const user = await isOwner(req, next);
     const holdevents = await Modal.find({ _id: { $in: user.holdEvents } });
     const joinevents = await Modal.find({ _id: { $in: user.joinedEvents } });
-    console.log({ joinevents });
     res.status(200).json({
       status: "success",
       data: { events: holdevents, joinedEvents: joinevents },
