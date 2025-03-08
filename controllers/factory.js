@@ -79,13 +79,13 @@ exports.createOne = (Modal) =>
   catchAsync(async (req, res, next) => {
     const user = await isOwner(req, next);
     const event = await Modal.create(req.body);
-    console.log(event);
 
     if (!event) {
       return next(new appError("No event is created", 404));
     }
 
     user.holdEvents.push(event);
+    user.joinedEvents.push(user._id);
     await user.save();
 
     const result = {
@@ -95,6 +95,19 @@ exports.createOne = (Modal) =>
       isAdmin: user.isAdmin,
       holdEvents: user.holdEvents,
     };
+    res.status(201).json({
+      status: "success",
+      data: result,
+    });
+  });
+
+exports.joinOne = (Modal) =>
+  catchAsync(async (req, res, next) => {
+    const user = await isOwner(req, next);
+
+    const event = await Modal.findOne({ _id: req.body });
+    event.joinedEvents.push(user._id);
+    event.save();
     res.status(201).json({
       status: "success",
       data: result,
