@@ -21,6 +21,7 @@ exports.getAll = (Modal) => {
     const user = await isOwner(req, next);
     const holdevents = await Modal.find({ _id: { $in: user.holdEvents } });
     const joinevents = await Modal.find({ _id: { $in: user.joinedEvents } });
+    console.log({ joinevents });
     res.status(200).json({
       status: "success",
       data: { events: holdevents, joinedEvents: joinevents },
@@ -86,7 +87,7 @@ exports.createOne = (Modal) =>
     }
 
     user.holdEvents.push(event);
-    user.joinedEvents.push(user._id);
+    user.joinedEvents.push(event._id);
     await user.save();
 
     const result = {
@@ -95,6 +96,7 @@ exports.createOne = (Modal) =>
       name: user.name,
       isAdmin: user.isAdmin,
       holdEvents: user.holdEvents,
+      joinedEvents: user.joinedEvents,
     };
     res.status(201).json({
       status: "success",

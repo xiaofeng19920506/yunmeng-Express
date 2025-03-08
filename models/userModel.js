@@ -23,7 +23,7 @@ const userSchema = new mongoose.Schema({
     default: [],
   },
   joinedEvents: {
-    type: [{ type: mongoose.Schema.Types.ObjectId, ref: "candy_users" }],
+    type: [{ type: mongoose.Schema.Types.ObjectId, ref: "Event" }],
     default: [],
   },
 });
