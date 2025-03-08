@@ -114,14 +114,13 @@ exports.joinOne = (Modal) =>
       return next(new appError("Event not found", 404));
     }
 
-    if (!event.joinedEvents.includes(user._id)) {
-      event.joinedEvents.push(user._id);
-      await event.save();
+    if (!user.joinedEvents.includes(event._id)) {
+      user.joinedEvents.push(event._id);
+      await user.save();
     }
 
     res.status(201).json({
       status: "success",
-      data: event,
+      data: user,
     });
   });
-
