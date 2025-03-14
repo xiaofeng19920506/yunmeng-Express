@@ -1,3 +1,4 @@
+const mongoose = require("mongoose");
 const Content = new mongoose.Schema({
   content: {
     type: String,
