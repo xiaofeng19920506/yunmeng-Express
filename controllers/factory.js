@@ -112,7 +112,7 @@ exports.InviteOne = (EventModal, UserModal) =>
       return next(new appError("User not found", 404));
     }
 
-    if (!eventId) {
+    if (!id) {
       return next(new appError("Event id must be provided", 400));
     }
 
@@ -125,18 +125,18 @@ exports.InviteOne = (EventModal, UserModal) =>
       return next(new appError("No such user found", 404));
     }
 
-    const currentEvent = await EventModal.findById(eventId);
+    const currentEvent = await EventModal.findById(id);
     if (!currentEvent) {
       return next(new appError("No such event found", 404));
     }
 
-    if (invitedUser.joinedEvents.includes(eventId)) {
+    if (invitedUser.joinedEvents.includes(id)) {
       return next(new appError("User already invited to this event", 400));
     }
 
     const updatedUser = await UserModal.findOneAndUpdate(
       { _id: invitedUser._id },
-      { $addToSet: { joinedEvents: eventId } },
+      { $addToSet: { joinedEvents: id } },
       { new: true }
     );
 
