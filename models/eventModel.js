@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+
 const Content = new mongoose.Schema({
   content: {
     type: String,
@@ -39,3 +40,6 @@ const eventSchema = new mongoose.Schema({
     required: [true, "Owner must exist"],
   },
 });
+
+const event = mongoose.model("yunmen-event", eventSchema);
+module.exports = event;

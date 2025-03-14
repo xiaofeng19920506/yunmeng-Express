@@ -29,6 +29,7 @@ exports.getAll = (Modal) => {
       _id: { $in: eventIds },
     });
 
+    console.log(events);
     res.status(200).json({
       status: "success",
       data: { events },
@@ -95,7 +96,7 @@ exports.createOne = (Modal) =>
     const user = await isUser(req, next);
 
     const eventData = {
-      eventTitle: req.body.eventTitle.map((title) => ({ title })),
+      eventTitle: req.body.eventTitle,
       eventContent: req.body.eventContent.map((content) => ({
         content,
         joinedUser: [],
@@ -110,8 +111,6 @@ exports.createOne = (Modal) =>
     }
 
     user.holdEvents.push(event._id);
-    // Remove the following line to prevent owner from being added to joinedEvents
-    // user.joinedEvents.push(event._id);
     await user.save();
 
     res.status(201).json({
