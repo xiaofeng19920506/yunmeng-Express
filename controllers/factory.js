@@ -28,23 +28,27 @@ exports.getAll = (Modal) => {
   });
 };
 
-exports.deleteOne = (Modal) => {
+exports.deleteOne = (EventModal, UserModal) => {
   return catchAsync(async (req, res, next) => {
     const user = await isUser(req, next);
-
+    const id = req.params.id;
     const userEvent = user.holdEvents.find(
-      (event) => event._id.toString() === req.params.id
+      (event) => event._id.toString() === id
     );
 
     if (!userEvent) {
       return next(new appError("User doesn't hold this event", 404));
     }
 
-    const deletedEvent = await Modal.findByIdAndDelete(req.params.id);
+    const deletedEvent = await EventModal.findByIdAndDelete(req.params.id);
 
     if (!deletedEvent) {
       return next(new appError("No event found with that id", 404));
     }
+    await UserModal.updateMany(
+      { "joinedEvents._id": id },
+      { $pull: { joinedEvents: { _id: id } } }
+    );
 
     res.status(204).json({ status: "success", data: null });
   });
