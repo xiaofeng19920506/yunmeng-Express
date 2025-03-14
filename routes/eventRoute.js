@@ -12,4 +12,6 @@ router.put("/:id", eventController.updateEvent);
 router.get("/:id", eventController.getOne);
 router.delete("/:id", eventController.deleteOne);
 
+router.post("/invite/:id", eventController.inviteUser);
+
 module.exports = router;

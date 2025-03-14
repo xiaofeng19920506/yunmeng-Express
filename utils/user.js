@@ -18,7 +18,7 @@ const extractUserIdFromToken = (token, next) => {
   }
 };
 
-const isOwner = async (request, next) => {
+const isUser = async (request, next) => {
   const token = extractToken(request);
   if (!token) {
     return res.status(400).json({
@@ -41,4 +41,5 @@ const isOwner = async (request, next) => {
   return user;
 };
 
-module.exports = { isOwner };
+
+module.exports = { isUser };

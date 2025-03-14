@@ -1,6 +1,6 @@
 const catchAsync = require("../utils/catchAsync");
 const appError = require("../utils/appError");
-const { isOwner } = require("../utils/user");
+const { isUser } = require("../utils/user");
 
 exports.getOne = (Modal) => {
   return catchAsync(async (req, res, next) => {
@@ -18,7 +18,7 @@ exports.getOne = (Modal) => {
 
 exports.getAll = (Modal) => {
   return catchAsync(async (req, res, next) => {
-    const user = await isOwner(req, next);
+    const user = await isUser(req, next);
     const holdevents = await Modal.find({ _id: { $in: user.holdEvents } });
     const joinevents = await Modal.find({ _id: { $in: user.joinedEvents } });
     res.status(200).json({
@@ -30,7 +30,7 @@ exports.getAll = (Modal) => {
 
 exports.deleteOne = (Modal) => {
   return catchAsync(async (req, res, next) => {
-    const user = await isOwner(req, next);
+    const user = await isUser(req, next);
 
     const userEvent = user.holdEvents.find(
       (event) => event._id.toString() === req.params.id
@@ -52,7 +52,7 @@ exports.deleteOne = (Modal) => {
 
 exports.updateOne = (Modal) =>
   catchAsync(async (req, res, next) => {
-    const user = await isOwner(req, next);
+    const user = await isUser(req, next);
 
     const userEventId = user.holdEvents.find(
       (eventId) => eventId.toString() === req.params.id
@@ -78,7 +78,7 @@ exports.updateOne = (Modal) =>
 
 exports.createOne = (Modal) =>
   catchAsync(async (req, res, next) => {
-    const user = await isOwner(req, next);
+    const user = await isUser(req, next);
     const event = await Modal.create(req.body);
 
     if (!event) {
@@ -103,26 +103,42 @@ exports.createOne = (Modal) =>
     });
   });
 
-exports.joinOne = (Modal) =>
+exports.InviteOne = (EventModal, UserModal) =>
   catchAsync(async (req, res, next) => {
-    const user = await isOwner(req, next);
-    const eventId = req.body.eventId;
+    const user = await isUser(req, next);
+    const { id: eventId } = req.params;
+    const { email } = req.body;
+
     if (!eventId) {
       return next(new appError("Event id must be provided", 400));
     }
 
-    const event = await Modal.findOne({ _id: eventId });
-    if (!event) {
-      return next(new appError("Event not found", 404));
+    if (!email) {
+      return next(new appError("Email must be provided", 400));
     }
 
-    if (!user.joinedEvents.includes(event._id)) {
-      user.joinedEvents.push(event._id);
-      await user.save();
+    const invitedUser = await UserModal.findOne({ email });
+    if (!invitedUser) {
+      return next(new appError("No such user found", 404));
     }
+
+    const currentEvent = await EventModal.findById(eventId);
+    if (!currentEvent) {
+      return next(new appError("No such event found", 404));
+    }
+
+    if (invitedUser.joinedEvents.includes(eventId)) {
+      return next(new appError("User already invited to this event", 400));
+    }
+
+    const updatedUser = await UserModal.findOneAndUpdate(
+      { _id: invitedUser._id },
+      { $addToSet: { joinedEvents: eventId } },
+      { new: true }
+    );
 
     res.status(201).json({
       status: "success",
-      data: user,
+      data: updatedUser,
     });
   });
