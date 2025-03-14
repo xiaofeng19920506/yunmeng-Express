@@ -11,6 +11,7 @@ router.get("/", eventController.getAllEvent);
 router.put("/:id", eventController.updateEvent);
 router.get("/:id", eventController.getOne);
 router.delete("/:id", eventController.deleteOne);
+router.post("/:id", eventController.voteOne);
 
 router.post("/invite", eventController.inviteUser);
 

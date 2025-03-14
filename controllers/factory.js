@@ -149,3 +149,51 @@ exports.InviteOne = (EventModal, UserModal) =>
       data: updatedUser,
     });
   });
+
+exports.VoteOne = (EventModal, UserModal) =>
+  catchAsync(async (req, res, next) => {
+    const user = await isUser(req, next); // Get authenticated user
+    const { id } = req.body; // Get event ID from request body
+
+    if (!user) {
+      return next(new appError("User not found", 404));
+    }
+
+    if (!id) {
+      return next(new appError("Event ID must be provided", 400));
+    }
+
+    const currentEvent = await EventModal.findById(id);
+    if (!currentEvent) {
+      return next(new appError("No such event found", 404));
+    }
+
+    const ownerId = currentEvent.owner;
+
+    if (user.joinedEvents.includes(id)) {
+      return next(new appError("User has already voted for this event", 400));
+    }
+
+    await UserModal.findByIdAndUpdate(
+      user._id,
+      { $addToSet: { joinedEvents: id } },
+      { new: true }
+    );
+
+    const updatedOwner = await UserModal.findOneAndUpdate(
+      { _id: ownerId, "holdEvents._id": id },
+      { $addToSet: { "holdEvents.$.joinedUser": user._id } },
+      { new: true }
+    );
+
+    if (!updatedOwner) {
+      return next(
+        new appError("Event not found in the owner's holdEvents", 404)
+      );
+    }
+
+    res.status(201).json({
+      status: "success",
+      data: updatedOwner,
+    });
+  });

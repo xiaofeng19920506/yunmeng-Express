@@ -8,3 +8,4 @@ exports.updateEvent = factory.updateOne(Event);
 exports.getOne = factory.getOne(Event);
 exports.deleteOne = factory.deleteOne(Event, User);
 exports.inviteUser = factory.InviteOne(Event, User);
+exports.voteOne = factory.VoteOne(Event, User);

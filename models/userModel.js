@@ -1,17 +1,23 @@
 const mongoose = require("mongoose");
 
+const eventSchema = new mongoose.Schema({
+  type: [{ type: mongoose.Schema.Types.ObjectId, ref: "Event" }],
+  joinedUser: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
+});
+
 const userSchema = new mongoose.Schema({
   email: {
     type: String,
-    required: [true, "username cannot be empty!"],
+    required: [true, "Email cannot be empty!"],
+    unique: true,
   },
   name: {
     type: String,
-    required: [true, "user's name cannot be empty!"],
+    required: [true, "User's name cannot be empty!"],
   },
   password: {
     type: String,
-    required: [true, "password cannot be empty"],
+    required: [true, "Password cannot be empty!"],
   },
   isAdmin: {
     type: Boolean,
@@ -19,7 +25,7 @@ const userSchema = new mongoose.Schema({
     default: false,
   },
   holdEvents: {
-    type: [{ type: mongoose.Schema.Types.ObjectId, ref: "Event" }],
+    type: [eventSchema],
     default: [],
   },
   joinedEvents: {
@@ -28,5 +34,5 @@ const userSchema = new mongoose.Schema({
   },
 });
 
-const users = mongoose.model("candy_users", userSchema);
-module.exports = users;
+const User = mongoose.model("candy_users", userSchema);
+module.exports = User;
