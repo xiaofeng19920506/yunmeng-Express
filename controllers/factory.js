@@ -106,8 +106,11 @@ exports.createOne = (Modal) =>
 exports.InviteOne = (EventModal, UserModal) =>
   catchAsync(async (req, res, next) => {
     const user = await isUser(req, next);
-    const { id: eventId } = req.params;
-    const { email } = req.body;
+    const { email, id } = req.body;
+
+    if (!user) {
+      return next(new appError("User not found", 404));
+    }
 
     if (!eventId) {
       return next(new appError("Event id must be provided", 400));
