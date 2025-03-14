@@ -4,7 +4,10 @@ const { isUser } = require("../utils/user");
 
 exports.getOne = (Modal) => {
   return catchAsync(async (req, res, next) => {
-    const event = await Modal.findOne({ _id: req.params.id });
+    const event = await Modal.findOne({ _id: req.params.id }).populate(
+      "eventContent.joinedUser",
+      "name email"
+    );
     if (!event) {
       return next(new appError("Event not found", 404));
     }
@@ -15,15 +18,20 @@ exports.getOne = (Modal) => {
     });
   });
 };
-
 exports.getAll = (Modal) => {
   return catchAsync(async (req, res, next) => {
     const user = await isUser(req, next);
-    const holdevents = await Modal.find({ _id: { $in: user.holdEvents } });
-    const joinevents = await Modal.find({ _id: { $in: user.joinedEvents } });
+    const eventIds = [
+      ...user.holdEvents.map((id) => id.toString()),
+      ...user.joinedEvents.map((id) => id.toString()),
+    ];
+    const events = await Modal.find({
+      _id: { $in: eventIds },
+    });
+
     res.status(200).json({
       status: "success",
-      data: { events: holdevents, joinedEvents: joinevents },
+      data: { events },
     });
   });
 };
@@ -45,9 +53,10 @@ exports.deleteOne = (EventModal, UserModal) => {
     if (!deletedEvent) {
       return next(new appError("No event found with that id", 404));
     }
+
     await UserModal.updateMany(
-      { "joinedEvents._id": id },
-      { $pull: { joinedEvents: { _id: id } } }
+      { joinedEvents: id },
+      { $pull: { joinedEvents: id } }
     );
 
     res.status(204).json({ status: "success", data: null });
@@ -64,6 +73,7 @@ exports.updateOne = (Modal) =>
     if (!userEventId) {
       return next(new appError("User doesn't hold this event", 404));
     }
+
     const updatedEvent = await Modal.findByIdAndUpdate(
       req.params.id,
       req.body,
@@ -83,27 +93,30 @@ exports.updateOne = (Modal) =>
 exports.createOne = (Modal) =>
   catchAsync(async (req, res, next) => {
     const user = await isUser(req, next);
-    const event = await Modal.create(req.body);
+
+    const eventData = {
+      eventTitle: req.body.eventTitle.map((title) => ({ title })),
+      eventContent: req.body.eventContent.map((content) => ({
+        content,
+        joinedUser: [],
+      })),
+      owner: user._id,
+    };
+
+    const event = await Modal.create(eventData);
 
     if (!event) {
       return next(new appError("No event is created", 404));
     }
 
-    user.holdEvents.push(event);
-    user.joinedEvents.push(event._id);
+    user.holdEvents.push(event._id);
+    // Remove the following line to prevent owner from being added to joinedEvents
+    // user.joinedEvents.push(event._id);
     await user.save();
 
-    const result = {
-      _id: user._id,
-      email: user.email,
-      name: user.name,
-      isAdmin: user.isAdmin,
-      holdEvents: user.holdEvents,
-      joinedEvents: user.joinedEvents,
-    };
     res.status(201).json({
       status: "success",
-      data: result,
+      data: { event },
     });
   });
 
@@ -138,62 +151,51 @@ exports.InviteOne = (EventModal, UserModal) =>
       return next(new appError("User already invited to this event", 400));
     }
 
-    const updatedUser = await UserModal.findOneAndUpdate(
-      { _id: invitedUser._id },
-      { $addToSet: { joinedEvents: id } },
-      { new: true }
-    );
+    invitedUser.joinedEvents.push(id);
+    await invitedUser.save();
 
     res.status(201).json({
       status: "success",
-      data: updatedUser,
+      data: invitedUser,
     });
   });
 
 exports.VoteOne = (EventModal, UserModal) =>
   catchAsync(async (req, res, next) => {
-    const user = await isUser(req, next); // Get authenticated user
-    const { id } = req.body; // Get event ID from request body
+    const user = await isUser(req, next);
+    const { eventId, contentIndex } = req.body;
 
     if (!user) {
       return next(new appError("User not found", 404));
     }
 
-    if (!id) {
-      return next(new appError("Event ID must be provided", 400));
+    if (eventId == null || contentIndex == null) {
+      return next(
+        new appError("Event ID and content index must be provided", 400)
+      );
     }
 
-    const currentEvent = await EventModal.findById(id);
+    const currentEvent = await EventModal.findById(eventId);
     if (!currentEvent) {
       return next(new appError("No such event found", 404));
     }
 
-    const ownerId = currentEvent.owner;
-
-    if (user.joinedEvents.includes(id)) {
+    if (user.joinedEvents.includes(eventId)) {
       return next(new appError("User has already voted for this event", 400));
     }
 
-    await UserModal.findByIdAndUpdate(
-      user._id,
-      { $addToSet: { joinedEvents: id } },
-      { new: true }
-    );
-
-    const updatedOwner = await UserModal.findOneAndUpdate(
-      { _id: ownerId, "holdEvents._id": id },
-      { $addToSet: { "holdEvents.$.joinedUser": user._id } },
-      { new: true }
-    );
-
-    if (!updatedOwner) {
-      return next(
-        new appError("Event not found in the owner's holdEvents", 404)
-      );
+    if (contentIndex < 0 || contentIndex >= currentEvent.eventContent.length) {
+      return next(new appError("Invalid content index", 400));
     }
+
+    currentEvent.eventContent[contentIndex].joinedUser.push(user._id);
+    await currentEvent.save();
+
+    user.joinedEvents.push(eventId);
+    await user.save();
 
     res.status(201).json({
       status: "success",
-      data: updatedOwner,
+      data: { event: currentEvent },
     });
   });
