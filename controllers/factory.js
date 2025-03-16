@@ -29,10 +29,10 @@ exports.getAll = (Modal) => {
       _id: { $in: eventIds },
     });
 
-    console.log(events);
+    console.log({ events });
     res.status(200).json({
       status: "success",
-      data: { events },
+      data: events,
     });
   });
 };
