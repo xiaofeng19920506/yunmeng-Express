@@ -184,22 +184,23 @@ exports.VoteOne = (EventModal) =>
             (userId) => userId !== user._id
           ))
       );
+    } else {
+      currentEvent.eventContent.forEach((event) => {
+        if (
+          subEventId.includes(event._id.toString()) &&
+          !event.joinedUser.includes(user._id)
+        ) {
+          event.joinedUser.push(user._id);
+        } else if (
+          !subEventId.includes(event._id.toString()) &&
+          event.joinedUser.includes(user._id)
+        ) {
+          event.joinedUser = event.joinedUser.filter(
+            (userId) => userId !== user._id
+          );
+        }
+      });
     }
-    currentEvent.eventContent.forEach((event) => {
-      if (
-        subEventId.includes(event._id.toString()) &&
-        !event.joinedUser.includes(user._id)
-      ) {
-        event.joinedUser.push(user._id);
-      } else if (
-        !subEventId.includes(event._id.toString()) &&
-        event.joinedUser.includes(user._id)
-      ) {
-        event.joinedUser = event.joinedUser.filter(
-          (userId) => userId !== user._id
-        );
-      }
-    });
 
     await currentEvent.save();
 
