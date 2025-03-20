@@ -166,6 +166,8 @@ exports.VoteOne = (EventModal) =>
     const data = req.body;
     const subEventId = data.map((subEvent) => subEvent._id);
 
+    console.log({ subEventId });
+    console.log({ data });
     if (!user) {
       return next(new appError("User not found", 404));
     }
@@ -188,10 +190,12 @@ exports.VoteOne = (EventModal) =>
       ) {
         event.joinedUser.push(user._id);
       } else if (
-        !subEventId.includes(event._id) &&
+        !subEventId.includes(event._id.toString()) &&
         event.joinedUser.includes(user._id)
       ) {
-        event.joinedUser.pop(user._id);
+        event.joinedUser = event.joinedUser.filter(
+          (userId) => userId !== user._id
+        );
       }
     });
 
