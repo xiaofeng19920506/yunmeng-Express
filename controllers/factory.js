@@ -159,39 +159,38 @@ exports.InviteOne = (EventModal, UserModal) =>
     });
   });
 
-exports.VoteOne = (EventModal, UserModal) =>
+exports.VoteOne = (EventModal) =>
   catchAsync(async (req, res, next) => {
     const user = await isUser(req, next);
-    const { eventId, contentIndex } = req.body;
+    const { id } = req.params;
+    const data = req.body;
+    const subEventId = data.map((subEvent) => subEvent._id);
 
     if (!user) {
       return next(new appError("User not found", 404));
     }
 
-    if (eventId == null || contentIndex == null) {
+    if (id == null || subEventId.length === 0) {
       return next(
         new appError("Event ID and content index must be provided", 400)
       );
     }
 
-    const currentEvent = await EventModal.findById(eventId);
+    const currentEvent = await EventModal.findById(id);
     if (!currentEvent) {
       return next(new appError("No such event found", 404));
     }
 
-    if (user.joinedEvents.includes(eventId)) {
-      return next(new appError("User has already voted for this event", 400));
-    }
+    currentEvent.eventContent.forEach((event) => {
+      if (
+        subEventId.includes(event._id.toString()) &&
+        !event.joinedUser.includes(user._id)
+      ) {
+        event.joinedUser.push(user._id);
+      }
+    });
 
-    if (contentIndex < 0 || contentIndex >= currentEvent.eventContent.length) {
-      return next(new appError("Invalid content index", 400));
-    }
-
-    currentEvent.eventContent[contentIndex].joinedUser.push(user._id);
     await currentEvent.save();
-
-    user.joinedEvents.push(eventId);
-    await user.save();
 
     res.status(201).json({
       status: "success",
