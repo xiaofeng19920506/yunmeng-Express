@@ -28,8 +28,6 @@ exports.getAll = (Modal) => {
     const events = await Modal.find({
       _id: { $in: eventIds },
     });
-
-    console.log({ events });
     res.status(200).json({
       status: "success",
       data: events,
@@ -97,7 +95,7 @@ exports.createOne = (Modal) =>
 
     const eventData = {
       eventTitle: req.body.eventTitle,
-      eventContent: req.body.eventContent.map((content) => ({
+      eventContent: req.body.eventContent.map(({ content }) => ({
         content,
         joinedUser: [],
       })),
