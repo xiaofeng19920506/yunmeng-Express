@@ -11,8 +11,8 @@ app.use(cookieParser());
 app.use(cors());
 app.use(express.json({ limit: "500kb" }));
 
-app.use("/api/v1/auth", authRoutes);
-app.use("/api/v1/events", eventRoutes);
+app.use("/api/auth", authRoutes);
+app.use("/api/events", eventRoutes);
 
 app.listen(3000, () => console.log("Server ready on port 3000."));
 module.exports = app;
