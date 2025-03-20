@@ -187,6 +187,11 @@ exports.VoteOne = (EventModal) =>
         !event.joinedUser.includes(user._id)
       ) {
         event.joinedUser.push(user._id);
+      } else if (
+        !subEventId.includes(event._id) &&
+        event.joinedUser.includes(user._id)
+      ) {
+        event.joinedUser.pop(user._id);
       }
     });
 
