@@ -172,17 +172,19 @@ exports.VoteOne = (EventModal) =>
       return next(new appError("User not found", 404));
     }
 
-    if (id == null || subEventId.length === 0) {
-      return next(
-        new appError("Event ID and content index must be provided", 400)
-      );
-    }
-
     const currentEvent = await EventModal.findById(id);
     if (!currentEvent) {
       return next(new appError("No such event found", 404));
     }
 
+    if (id == null || subEventId.length === 0) {
+      currentEvent.eventContent.forEach(
+        (event) =>
+          (event.joinedUser = event.joinedUser.filter(
+            (userId) => userId !== user._id
+          ))
+      );
+    }
     currentEvent.eventContent.forEach((event) => {
       if (
         subEventId.includes(event._id.toString()) &&
