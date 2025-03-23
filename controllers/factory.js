@@ -164,6 +164,7 @@ exports.VoteOne = (EventModal) =>
     const data = req.body;
     const subEventId = data.map((subEvent) => subEvent._id);
 
+    console.log(req.body);
     if (!user) {
       return next(new appError("User not found", 404));
     }
@@ -174,9 +175,9 @@ exports.VoteOne = (EventModal) =>
     }
 
     if (id == null || subEventId.length === 0) {
-      currentEvent.eventContent.forEach((event) =>
-        event.joinedUser.pop(user._id)
-      );
+      currentEvent.eventContent.forEach((event) => {
+        event.joinedUser.pop(user._id);
+      });
     } else {
       currentEvent.eventContent.forEach((event) => {
         if (
@@ -184,17 +185,13 @@ exports.VoteOne = (EventModal) =>
           !event.joinedUser.includes(user._id)
         ) {
           event.joinedUser.push(user._id);
-        } else if (
-          !subEventId.includes(event._id.toString()) &&
-          event.joinedUser.includes(user._id)
-        ) {
+        } else {
           event.joinedUser = event.joinedUser.filter(
-            (userId) => userId !== user._id
+            (userId) => userId === user._id
           );
         }
       });
     }
-
     await currentEvent.save();
 
     res.status(201).json({
